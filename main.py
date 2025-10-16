@@ -1,14 +1,29 @@
 import telebot
-from bot_logic import gen_pass, gen_emodji, flip_coin  # Импортируем функции из bot_logic
 
-# Замени 'TOKEN' на токен твоего бота
+import random
+    
 bot = telebot.TeleBot("TOKEN")
+
+
+def gen_pass(pass_length):
+    elements = "+-/*!&$#?=@<>123456789"
+    password = ""
+    for i in range(pass_length):
+        password += random.choice(elements)
+    return password
+
+
+
+@bot.message_handler(commands=['pass'])
+def send_password(message):
+    password = gen_pass(10) 
+    bot.reply_to(message, f"Вот твой сгенерированный пароль: {password}")
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "Привет! Я твой Telegram бот. Напиши команду /hello, /bye, /pass, /emodji или /coin  ")
+    bot.reply_to(message, "Привет! Я твой Telegram бот. Напиши что-нибудь!")
 
-@bot.message_handler(commands=['hello'])
+@bot.message_handler(commands=['hi'])
 def send_hello(message):
     bot.reply_to(message, "Привет! Как дела?")
 
@@ -16,20 +31,18 @@ def send_hello(message):
 def send_bye(message):
     bot.reply_to(message, "Пока! Удачи!")
 
-@bot.message_handler(commands=['pass'])
-def send_password(message):
-    password = gen_pass(10)  # Устанавливаем длину пароля, например, 10 символов
-    bot.reply_to(message, f"Вот твой сгенерированный пароль: {password}")
 
-@bot.message_handler(commands=['emodji'])
-def send_emodji(message):
-    emodji = gen_emodji()
-    bot.reply_to(message, f"Вот эмоджи': {emodji}")
+@bot.message_handler(func=lambda message: True)
+def echo_all(message):
+    bot.reply_to(message, message.text)
 
-@bot.message_handler(commands=['coin'])
-def send_coin(message):
-    coin = flip_coin()
-    bot.reply_to(message, f"Монетка выпала так: {coin}")
 
-# Запускаем бота
-bot.polling()
+
+
+@bot.chat_join_request_handler()
+def make_some(message: telebot.types.ChatJoinRequest):
+    bot.send_message(message.chat.id, 'Я принял нового пользователя!')
+    bot.approve_chat_join_request(message.chat.id, message.from_user.id)
+
+bot.infinity_polling(allowed_updates=telebot.util.update_types)
+
