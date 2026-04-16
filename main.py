@@ -1,48 +1,44 @@
-import telebot
+mport telebot
+from bot_logic import gen_pass, coin_flip, random_emoji
 
-import random
-    
-bot = telebot.TeleBot("TOKEN")
+TOKEN = "  "
 
-
-def gen_pass(pass_length):
-    elements = "+-/*!&$#?=@<>123456789"
-    password = ""
-    for i in range(pass_length):
-        password += random.choice(elements)
-    return password
-
-
+bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(commands=['pass'])
 def send_password(message):
-    password = gen_pass(10) 
-    bot.reply_to(message, f"Вот твой сгенерированный пароль: {password}")
+    password = gen_pass(20)
+    bot.reply_to(message, f"Вот твой пароль: {password}")
+
+@bot.message_handler(commands=['coin'])
+def send_coin(message):
+    result = coin_flip()
+    bot.reply_to(message, f"Монетка подброшена. Выпало: {result}")
+
+@bot.message_handler(commands=['emoji'])
+def send_emoji(message):
+
+    emoji = random_emoji()
+    bot.reply_to(message, f"Вот твой случайный смайлик: {emoji}")
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
+
     bot.reply_to(message, "Привет! Я твой Telegram бот. Напиши что-нибудь!")
 
-@bot.message_handler(commands=['hi'])
+@bot.message_handler(commands=['hello'])
 def send_hello(message):
+
     bot.reply_to(message, "Привет! Как дела?")
 
 @bot.message_handler(commands=['bye'])
 def send_bye(message):
-    bot.reply_to(message, "Пока! Удачи!")
 
+    bot.reply_to(message, "Пока! Удачи!")
 
 @bot.message_handler(func=lambda message: True)
 def echo_all(message):
+
     bot.reply_to(message, message.text)
 
-
-
-
-@bot.chat_join_request_handler()
-def make_some(message: telebot.types.ChatJoinRequest):
-    bot.send_message(message.chat.id, 'Я принял нового пользователя!')
-    bot.approve_chat_join_request(message.chat.id, message.from_user.id)
-
-bot.infinity_polling(allowed_updates=telebot.util.update_types)
-
+bot.polling()
